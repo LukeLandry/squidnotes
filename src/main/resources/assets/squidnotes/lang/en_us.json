@@ -1,0 +1,8 @@
+{
+	"screen.squidnotes.note_block.title": "Select Note",
+	"screen.squidnotes.note_block.cancel": "Cancel",
+	"screen.squidnotes.note_block.current": "Current Note: %s",
+	"screen.squidnotes.note_block.pending": "Selected Note: %s",
+	"screen.squidnotes.note_block.instrument": "Instrument: %s",
+	"screen.squidnotes.note_block.apply": "Set Note"
+}
