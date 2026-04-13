@@ -1,46 +1,54 @@
 # Squid Notes
 
-Squid Notes is a Fabric mod for Minecraft Java Edition that replaces the default note-block right-click cycle with a note-selection UI for players who have the mod installed. Right-click opens a piano-style keyboard where the player can preview notes locally, choose a pending note directly, and commit it only after pressing confirm. Shift-right-click keeps vanilla placement behavior so blocks can still be placed against a note block.
+Squid Notes is a cross-platform Minecraft project that ships as both a Fabric mod and a Paper plugin. The Fabric client mod replaces the default note-block right-click cycle with a note-selection UI for players who have the mod installed. Right-click opens a piano-style keyboard where the player can preview notes locally, choose a pending note directly, and commit it only after pressing confirm. Shift-right-click keeps vanilla placement behavior so blocks can still be placed against a note block.
 
 ## Current Behavior
 
-The project is initialized from the official Fabric example mod and retargeted for:
+The repository is organized as a multi-project Gradle build:
 
-- Mod ID: `squidnotes`
-- Maven group: `com.squidpowered`
-- Java package: `com.squidpowered.squidnotes`
-- Target stack: Fabric Loader, Fabric API, and Loom versions from the current Fabric example template
+- `shared/`: platform-neutral note metadata and Squid Notes protocol classes
+- `fabric/`: Fabric mod with the client UI and Fabric server integration
+- `paper/`: Paper plugin that interoperates with the Fabric client mod
 
-The current mod includes:
+The current implementation includes:
 
-- Common mod initialization
-- Client mod initialization
 - Shared note metadata for the 25 note-block values
-- A client note-selection screen for note blocks
-- A client-to-server payload that applies the chosen note after server validation
-- Compatibility so vanilla clients on a modded server still get normal note-block tuning on right-click
+- A shared hello and note-selection protocol used by both platforms
+- A Fabric client note-selection screen for note blocks
+- Fabric server support for the Squid Notes protocol
+- Paper plugin support for the Squid Notes protocol
+- Compatibility so vanilla clients on supported servers still get normal note-block tuning on right-click
 - Sneak interaction pass-through so shift-right-click can still place blocks against note blocks
 - A detailed implementation plan in `docs/implementation-plan.md`
 
 ## Development
 
-This scaffold targets Minecraft `26.1.2` and Java 25.
+This project targets Minecraft `26.1.2` and Java 25.
 
-Run the client in a development environment:
+Run the Fabric client in a development environment:
 
 ```sh
-./gradlew runClient
+./gradlew :fabric:runClient
 ```
 
-Build the mod jar:
+Build all artifacts:
 
 ```sh
 ./gradlew build
 ```
 
+Build one artifact at a time:
+
+```sh
+./gradlew :fabric:build
+./gradlew :paper:build
+```
+
+Built jars are written under each module's `build/libs/` directory.
+
 ## Notes
 
-For players with the mod installed, the client only enables the note-selection UI when the connected server advertises Squid Notes support, and it cancels the normal note-block interaction packet locally when opening the UI. Players without the mod keep vanilla right-click tuning behavior. Shift-right-click is intentionally left alone so vanilla block placement still works.
+For players with the Fabric client mod installed, the client only enables the note-selection UI when the connected server advertises Squid Notes support. That support can come from either the Fabric server module or the Paper plugin. Players without the mod keep vanilla right-click tuning behavior. Shift-right-click is intentionally left alone so vanilla block placement still works.
 
 ## License
 

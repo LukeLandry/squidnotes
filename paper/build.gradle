@@ -1,0 +1,47 @@
+plugins {
+	id 'java'
+	id 'maven-publish'
+}
+
+base {
+	archivesName = project.paper_archives_base_name
+}
+
+dependencies {
+	compileOnly "io.papermc.paper:paper-api:${project.paper_api_version}"
+	implementation project(':shared')
+}
+
+java {
+	withSourcesJar()
+}
+
+processResources {
+	inputs.property "version", project.version
+
+	filesMatching("paper-plugin.yml") {
+		expand "version": inputs.properties.version
+	}
+}
+
+jar {
+	inputs.property "archivesName", project.base.archivesName
+	dependsOn ':shared:classes'
+	from { project(':shared').sourceSets.main.output }
+
+	from(rootProject.file("LICENSE")) {
+		rename { "${it}_${inputs.properties.archivesName}" }
+	}
+}
+
+publishing {
+	publications {
+		create("mavenJava", MavenPublication) {
+			artifactId = project.paper_archives_base_name
+			from components.java
+		}
+	}
+
+	repositories {
+	}
+}

@@ -1,0 +1,6 @@
+name: SquidNotes
+version: ${version}
+main: com.squidpowered.squidnotes.paper.SquidNotesPaperPlugin
+description: Paper companion plugin for the Squid Notes Fabric client mod.
+author: Luke
+api-version: '26.1.2'

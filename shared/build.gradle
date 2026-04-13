@@ -1,0 +1,24 @@
+plugins {
+	id 'java-library'
+	id 'maven-publish'
+}
+
+base {
+	archivesName = project.shared_archives_base_name
+}
+
+java {
+	withSourcesJar()
+}
+
+publishing {
+	publications {
+		create("mavenJava", MavenPublication) {
+			artifactId = project.shared_archives_base_name
+			from components.java
+		}
+	}
+
+	repositories {
+	}
+}

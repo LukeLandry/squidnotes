@@ -4,9 +4,15 @@ pluginManagement {
 			name = 'Fabric'
 			url = 'https://maven.fabricmc.net/'
 		}
+		maven {
+			name = 'Paper'
+			url = 'https://repo.papermc.io/repository/maven-public/'
+		}
 		mavenCentral()
 		gradlePluginPortal()
 	}
 }
 
 rootProject.name = 'squidnotes'
+
+include 'shared', 'fabric', 'paper'
