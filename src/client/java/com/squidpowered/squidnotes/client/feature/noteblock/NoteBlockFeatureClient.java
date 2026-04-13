@@ -3,12 +3,13 @@ package com.squidpowered.squidnotes.client.feature.noteblock;
 import com.squidpowered.squidnotes.feature.noteblock.NoteBlockSetNotePayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.NoteBlock;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.NoteBlock;
+import net.minecraft.world.level.block.state.BlockState;
 
 public final class NoteBlockFeatureClient {
 	private NoteBlockFeatureClient() {
@@ -16,35 +17,35 @@ public final class NoteBlockFeatureClient {
 
 	public static void initializeClient() {
 		UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
-			if (hand != Hand.MAIN_HAND || player.isSpectator() || player.shouldCancelInteraction()) {
-				return ActionResult.PASS;
+			if (hand != InteractionHand.MAIN_HAND || player.isSpectator() || player.isSecondaryUseActive()) {
+				return InteractionResult.PASS;
 			}
 
 			if (!ClientPlayNetworking.canSend(NoteBlockSetNotePayload.ID)) {
-				return ActionResult.PASS;
+				return InteractionResult.PASS;
 			}
 
 			BlockState state = world.getBlockState(hitResult.getBlockPos());
 
-			if (!state.isOf(Blocks.NOTE_BLOCK)) {
-				return ActionResult.PASS;
+			if (!state.is(Blocks.NOTE_BLOCK)) {
+				return InteractionResult.PASS;
 			}
 
-			MinecraftClient client = MinecraftClient.getInstance();
+			Minecraft client = Minecraft.getInstance();
 
-			if (client.currentScreen == null) {
+			if (client.screen == null) {
 				client.setScreen(new NoteBlockKeyboardScreen(
-					hitResult.getBlockPos().toImmutable(),
-					state.get(NoteBlock.NOTE),
-					state.get(NoteBlock.INSTRUMENT)
+					hitResult.getBlockPos().immutable(),
+					state.getValue(NoteBlock.NOTE),
+					state.getValue(NoteBlock.INSTRUMENT)
 				));
 			}
 
-			return ActionResult.FAIL;
+			return InteractionResult.FAIL;
 		});
 	}
 
-	public static void sendNoteSelection(int noteValue, net.minecraft.util.math.BlockPos blockPos) {
+	public static void sendNoteSelection(int noteValue, BlockPos blockPos) {
 		if (!ClientPlayNetworking.canSend(NoteBlockSetNotePayload.ID)) {
 			return;
 		}

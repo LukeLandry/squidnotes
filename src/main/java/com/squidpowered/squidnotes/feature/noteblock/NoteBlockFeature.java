@@ -3,19 +3,19 @@ package com.squidpowered.squidnotes.feature.noteblock;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.NoteBlock;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.stat.Stats;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.stats.Stats;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.NoteBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
 
 public final class NoteBlockFeature {
 	private static final double INTERACTION_RANGE = 8.0D;
@@ -24,60 +24,60 @@ public final class NoteBlockFeature {
 	}
 
 	public static void initialize() {
-		PayloadTypeRegistry.playC2S().register(NoteBlockSetNotePayload.ID, NoteBlockSetNotePayload.CODEC);
+		PayloadTypeRegistry.serverboundPlay().register(NoteBlockSetNotePayload.ID, NoteBlockSetNotePayload.CODEC);
 		ServerPlayNetworking.registerGlobalReceiver(NoteBlockSetNotePayload.ID, (payload, context) -> applySelection(context.player(), payload));
 		UseBlockCallback.EVENT.register(NoteBlockFeature::handleVanillaTuningFallback);
 	}
 
-	private static ActionResult handleVanillaTuningFallback(PlayerEntity player, World world, Hand hand, BlockHitResult hitResult) {
-		if (world.isClient() || hand != Hand.MAIN_HAND || player.isSpectator() || player.shouldCancelInteraction()) {
-			return ActionResult.PASS;
+	private static InteractionResult handleVanillaTuningFallback(Player player, Level world, InteractionHand hand, BlockHitResult hitResult) {
+		if (world.isClientSide() || hand != InteractionHand.MAIN_HAND || player.isSpectator() || player.isSecondaryUseActive()) {
+			return InteractionResult.PASS;
 		}
 
 		BlockPos blockPos = hitResult.getBlockPos();
-		if (!(world instanceof ServerWorld serverWorld) || !serverWorld.isChunkLoaded(ChunkPos.toLong(blockPos)) || !player.canInteractWithBlockAt(blockPos, INTERACTION_RANGE)) {
-			return ActionResult.PASS;
+		if (!(world instanceof ServerLevel serverWorld) || !serverWorld.isLoaded(blockPos) || !player.isWithinBlockInteractionRange(blockPos, INTERACTION_RANGE)) {
+			return InteractionResult.PASS;
 		}
 
 		BlockState state = world.getBlockState(blockPos);
-		if (!state.isOf(Blocks.NOTE_BLOCK)) {
-			return ActionResult.PASS;
+		if (!state.is(Blocks.NOTE_BLOCK)) {
+			return InteractionResult.PASS;
 		}
 
 		BlockState updatedState = state.cycle(NoteBlock.NOTE);
-		serverWorld.setBlockState(blockPos, updatedState, 3);
-		serverWorld.addSyncedBlockEvent(blockPos, Blocks.NOTE_BLOCK, 0, 0);
-		player.incrementStat(Stats.TUNE_NOTEBLOCK);
-		return ActionResult.SUCCESS;
+		serverWorld.setBlock(blockPos, updatedState, 3);
+		serverWorld.blockEvent(blockPos, Blocks.NOTE_BLOCK, 0, 0);
+		player.awardStat(Stats.TUNE_NOTEBLOCK);
+		return InteractionResult.SUCCESS_SERVER;
 	}
 
-	private static void applySelection(ServerPlayerEntity player, NoteBlockSetNotePayload payload) {
+	private static void applySelection(ServerPlayer player, NoteBlockSetNotePayload payload) {
 		if (!isValidNoteValue(payload.noteValue())) {
 			return;
 		}
 
-		ServerWorld world = (ServerWorld) player.getEntityWorld();
+		ServerLevel world = player.level();
 		BlockPos blockPos = payload.blockPos();
 
-		if (!world.isChunkLoaded(ChunkPos.toLong(blockPos)) || !player.canInteractWithBlockAt(blockPos, INTERACTION_RANGE)) {
+		if (!world.isLoaded(blockPos) || !player.isWithinBlockInteractionRange(blockPos, INTERACTION_RANGE)) {
 			return;
 		}
 
 		BlockState state = world.getBlockState(blockPos);
 
-		if (!state.isOf(Blocks.NOTE_BLOCK)) {
+		if (!state.is(Blocks.NOTE_BLOCK)) {
 			return;
 		}
 
-		BlockState updatedState = state.with(NoteBlock.NOTE, payload.noteValue());
+		BlockState updatedState = state.setValue(NoteBlock.NOTE, payload.noteValue());
 
 		if (updatedState.equals(state)) {
 			return;
 		}
 
-		world.setBlockState(blockPos, updatedState, 3);
-		world.addSyncedBlockEvent(blockPos, Blocks.NOTE_BLOCK, 0, 0);
-		player.incrementStat(Stats.TUNE_NOTEBLOCK);
+		world.setBlock(blockPos, updatedState, 3);
+		world.blockEvent(blockPos, Blocks.NOTE_BLOCK, 0, 0);
+		player.awardStat(Stats.TUNE_NOTEBLOCK);
 	}
 
 	public static boolean isValidNoteValue(int noteValue) {

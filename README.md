@@ -24,7 +24,7 @@ The current mod includes:
 
 ## Development
 
-This scaffold targets Minecraft `1.21.11` and Java 21.
+This scaffold targets Minecraft `26.1.2` and Java 25.
 
 Run the client in a development environment:
 
