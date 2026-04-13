@@ -1,6 +1,6 @@
 # Squid Notes
 
-Squid Notes is a cross-platform Minecraft project that ships as both a Fabric mod and a Paper plugin. The Fabric client mod replaces the default note-block right-click cycle with a note-selection UI for players who have the mod installed. Right-click opens a piano-style keyboard where the player can preview notes locally, choose a pending note directly, and commit it only after pressing confirm. Shift-right-click keeps vanilla placement behavior so blocks can still be placed against a note block.
+Squid Notes is a Minecraft Java Edition mod that ships as both a Fabric mod and a Paper plugin. The Fabric client mod replaces the default note-block right-click cycle with a note-selection UI for players who have the mod installed. Right-click opens a piano-style keyboard where the player can preview notes locally, choose a pending note directly, and commit it only after pressing confirm. Shift-right-click keeps vanilla placement behavior so blocks can still be placed against a note block.
 
 ## Current Behavior
 
