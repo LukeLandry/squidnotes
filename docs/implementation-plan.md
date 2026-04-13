@@ -7,12 +7,13 @@ Replace the note block's default right-click note cycling with a direct note pic
 Desired player flow:
 
 1. Player right-clicks a note block.
-2. Vanilla note increment is suppressed.
+2. Vanilla note increment is suppressed for modded clients, while vanilla clients keep default tuning behavior.
 3. A client UI opens with a piano-style keyboard covering note values `0..24`.
 4. The current note is visibly highlighted.
 5. Clicking a key updates the local selection and plays a client-side-only preview of that note.
 6. The block is not modified until the player presses a confirm button.
 7. Clicking cancel closes the UI without changing the note.
+8. Shift-right-click skips the custom UI so vanilla block placement against the note block still works.
 
 ## Proposed Architecture
 
@@ -20,10 +21,10 @@ Desired player flow:
 
 Use `UseBlockCallback` to detect note-block interaction instead of starting with a mixin.
 
-- On the client side, detect a right-click on a note block and open the keyboard screen.
-- On the server side, return a handled result for the same interaction so vanilla note cycling does not run.
+- On the client side, detect a right-click on a note block, open the keyboard screen only when the connected server supports the Squid Notes payload, and cancel the normal interaction packet.
+- Do not intercept note-block right-click on the server; vanilla clients should continue to use the normal block interaction path.
 - Only intercept the main-hand interaction path unless testing shows off-hand handling is also necessary.
-- Do not preserve vanilla tuning on shift-right-click; the custom UI is the only tuning interaction.
+- Pass through shift-right-click by checking `player.shouldCancelInteraction()` so vanilla placement behavior still works.
 
 Reasoning: this is lower-risk than patching `NoteBlock` immediately and keeps the mod easier to maintain across game updates.
 
@@ -99,7 +100,9 @@ Do not rely on stale client state when applying the selection; always validate a
 
 ## Validation Checklist
 
-- Right-clicking a note block opens the UI instead of incrementing the note.
+- Right-clicking a note block opens the UI instead of incrementing the note for modded clients.
+- Vanilla clients connected to a modded server still increment the note on right-click.
+- Shift-right-clicking a note block does not open the UI and still allows block placement against it.
 - Cancel leaves the note unchanged.
 - Clicking a note previews the pitch locally without changing the block.
 - Pressing confirm updates the block to the exact requested value.

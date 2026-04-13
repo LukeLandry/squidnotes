@@ -26,18 +26,28 @@ public final class NoteBlockFeature {
 	public static void initialize() {
 		PayloadTypeRegistry.playC2S().register(NoteBlockSetNotePayload.ID, NoteBlockSetNotePayload.CODEC);
 		ServerPlayNetworking.registerGlobalReceiver(NoteBlockSetNotePayload.ID, (payload, context) -> applySelection(context.player(), payload));
-		UseBlockCallback.EVENT.register(NoteBlockFeature::interceptInteraction);
+		UseBlockCallback.EVENT.register(NoteBlockFeature::handleVanillaTuningFallback);
 	}
 
-	private static ActionResult interceptInteraction(PlayerEntity player, World world, Hand hand, BlockHitResult hitResult) {
-		if (world.isClient() || hand != Hand.MAIN_HAND || player.isSpectator()) {
+	private static ActionResult handleVanillaTuningFallback(PlayerEntity player, World world, Hand hand, BlockHitResult hitResult) {
+		if (world.isClient() || hand != Hand.MAIN_HAND || player.isSpectator() || player.shouldCancelInteraction()) {
 			return ActionResult.PASS;
 		}
 
-		if (!world.getBlockState(hitResult.getBlockPos()).isOf(Blocks.NOTE_BLOCK)) {
+		BlockPos blockPos = hitResult.getBlockPos();
+		if (!(world instanceof ServerWorld serverWorld) || !serverWorld.isChunkLoaded(ChunkPos.toLong(blockPos)) || !player.canInteractWithBlockAt(blockPos, INTERACTION_RANGE)) {
 			return ActionResult.PASS;
 		}
 
+		BlockState state = world.getBlockState(blockPos);
+		if (!state.isOf(Blocks.NOTE_BLOCK)) {
+			return ActionResult.PASS;
+		}
+
+		BlockState updatedState = state.cycle(NoteBlock.NOTE);
+		serverWorld.setBlockState(blockPos, updatedState, 3);
+		serverWorld.addSyncedBlockEvent(blockPos, Blocks.NOTE_BLOCK, 0, 0);
+		player.incrementStat(Stats.TUNE_NOTEBLOCK);
 		return ActionResult.SUCCESS;
 	}
 

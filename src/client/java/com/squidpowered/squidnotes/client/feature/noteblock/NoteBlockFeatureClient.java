@@ -1,5 +1,6 @@
 package com.squidpowered.squidnotes.client.feature.noteblock;
 
+import com.squidpowered.squidnotes.feature.noteblock.NoteBlockSetNotePayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.minecraft.block.BlockState;
@@ -15,7 +16,11 @@ public final class NoteBlockFeatureClient {
 
 	public static void initializeClient() {
 		UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
-			if (hand != Hand.MAIN_HAND || player.isSpectator()) {
+			if (hand != Hand.MAIN_HAND || player.isSpectator() || player.shouldCancelInteraction()) {
+				return ActionResult.PASS;
+			}
+
+			if (!ClientPlayNetworking.canSend(NoteBlockSetNotePayload.ID)) {
 				return ActionResult.PASS;
 			}
 
@@ -35,11 +40,15 @@ public final class NoteBlockFeatureClient {
 				));
 			}
 
-			return ActionResult.SUCCESS;
+			return ActionResult.FAIL;
 		});
 	}
 
 	public static void sendNoteSelection(int noteValue, net.minecraft.util.math.BlockPos blockPos) {
-		ClientPlayNetworking.send(new com.squidpowered.squidnotes.feature.noteblock.NoteBlockSetNotePayload(blockPos, noteValue));
+		if (!ClientPlayNetworking.canSend(NoteBlockSetNotePayload.ID)) {
+			return;
+		}
+
+		ClientPlayNetworking.send(new NoteBlockSetNotePayload(blockPos, noteValue));
 	}
 }

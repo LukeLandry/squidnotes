@@ -45,6 +45,7 @@ public class NoteBlockKeyboardScreen extends Screen {
 	private final List<KeyBounds> whiteKeys = new ArrayList<>();
 	private final List<KeyBounds> blackKeys = new ArrayList<>();
 	private int pendingNoteValue;
+	private int lastClickedNoteValue = -1;
 	private ButtonWidget confirmButton;
 	private int panelLeft;
 	private int panelTop;
@@ -114,11 +115,13 @@ public class NoteBlockKeyboardScreen extends Screen {
 			KeyBounds key = this.getKeyAt(click.x(), click.y());
 
 			if (key != null) {
+				boolean confirmSelection = doubleClick && key.noteValue() == this.lastClickedNoteValue;
 				this.pendingNoteValue = key.noteValue();
+				this.lastClickedNoteValue = key.noteValue();
 				this.confirmButton.active = this.pendingNoteValue != this.committedNoteValue;
 				this.playPreview(key.noteValue());
 
-				if (doubleClick) {
+				if (confirmSelection) {
 					this.applyPendingSelection();
 				}
 
