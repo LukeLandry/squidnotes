@@ -44,4 +44,4 @@ For players with the mod installed, the client only enables the note-selection U
 
 ## License
 
-The scaffold currently retains the template's CC0 license. Change that before release if you want a different project license.
+This project is licensed under the GNU General Public License v3.0.
