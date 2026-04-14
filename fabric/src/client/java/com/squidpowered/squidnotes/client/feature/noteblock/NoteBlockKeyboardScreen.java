@@ -23,7 +23,7 @@ import java.util.List;
 public class NoteBlockKeyboardScreen extends Screen {
 	private static final int WHITE = 0xFFFFFFFF;
 	private static final int PANEL_WIDTH = 430;
-	private static final int PANEL_HEIGHT = 224;
+	private static final int PANEL_HEIGHT = 232;
 	private static final int WHITE_KEY_WIDTH = 24;
 	private static final int WHITE_KEY_HEIGHT = 112;
 	private static final int BLACK_KEY_WIDTH = 16;
