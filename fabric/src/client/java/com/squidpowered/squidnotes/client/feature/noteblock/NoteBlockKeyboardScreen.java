@@ -120,7 +120,10 @@ public class NoteBlockKeyboardScreen extends Screen {
 				this.pendingNoteValue = key.noteValue();
 				this.lastClickedNoteValue = key.noteValue();
 				this.confirmButton.active = this.pendingNoteValue != this.committedNoteValue;
-				this.playPreview(key.noteValue());
+
+				if (!confirmSelection) {
+					this.playPreview(key.noteValue());
+				}
 
 				if (confirmSelection) {
 					this.applyPendingSelection();
