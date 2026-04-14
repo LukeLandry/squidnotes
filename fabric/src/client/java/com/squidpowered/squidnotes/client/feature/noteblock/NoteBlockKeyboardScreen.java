@@ -88,8 +88,8 @@ public class NoteBlockKeyboardScreen extends Screen {
 		context.outline(this.panelLeft, this.panelTop, PANEL_WIDTH, PANEL_HEIGHT, PANEL_BORDER);
 		context.centeredText(this.font, this.title, this.width / 2, this.panelTop + 12, WHITE);
 
-		Component committedLabel = Component.translatable("screen.squidnotes.note_block.current", NoteBlockNotes.get(this.committedNoteValue).label());
-		Component pendingLabel = Component.translatable("screen.squidnotes.note_block.pending", NoteBlockNotes.get(this.pendingNoteValue).label());
+		Component committedLabel = Component.translatable("screen.squidnotes.note_block.current", formatNoteLabel(this.committedNoteValue));
+		Component pendingLabel = Component.translatable("screen.squidnotes.note_block.pending", formatNoteLabel(this.pendingNoteValue));
 		Component instrumentLabel = Component.translatable("screen.squidnotes.note_block.instrument", prettifyInstrumentName(this.instrument));
 
 		context.text(this.font, committedLabel, this.panelLeft + 16, this.panelTop + 34, 0xFFE6D3B3, true);
@@ -101,8 +101,7 @@ public class NoteBlockKeyboardScreen extends Screen {
 		this.renderBlackKeys(context, hoveredKey);
 
 		if (hoveredKey != null) {
-			NoteDefinition definition = NoteBlockNotes.get(hoveredKey.noteValue());
-			Component hoverText = Component.literal(definition.label()).withStyle(ChatFormatting.BOLD);
+			Component hoverText = formatNoteLabel(hoveredKey.noteValue()).copy().withStyle(ChatFormatting.BOLD);
 			context.setTooltipForNextFrame(this.font, hoverText, mouseX, mouseY);
 		}
 
@@ -270,6 +269,11 @@ public class NoteBlockKeyboardScreen extends Screen {
 			SoundInstance.createUnseededRandom(),
 			this.blockPos
 		));
+	}
+
+	private static Component formatNoteLabel(int noteValue) {
+		NoteDefinition definition = NoteBlockNotes.get(noteValue);
+		return Component.literal(definition.label() + " (" + definition.value() + ")");
 	}
 
 	private static String prettifyInstrumentName(NoteBlockInstrument instrument) {
