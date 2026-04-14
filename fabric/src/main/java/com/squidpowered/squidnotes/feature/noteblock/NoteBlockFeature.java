@@ -21,8 +21,13 @@ import net.minecraft.world.level.block.NoteBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
 public final class NoteBlockFeature {
 	private static final double INTERACTION_RANGE = 8.0D;
+	private static final Set<UUID> SUPPORTED_PLAYERS = ConcurrentHashMap.newKeySet();
 
 	private NoteBlockFeature() {
 	}
@@ -32,7 +37,13 @@ public final class NoteBlockFeature {
 		PayloadTypeRegistry.serverboundPlay().register(FabricHelloPayload.ID, FabricHelloPayload.CODEC);
 		PayloadTypeRegistry.serverboundPlay().register(FabricNoteSelectionPayload.ID, FabricNoteSelectionPayload.CODEC);
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> ServerPlayNetworking.send(handler.player, new FabricHelloPayload(new HelloMessage(SquidNotesProtocol.PROTOCOL_VERSION))));
+		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> SUPPORTED_PLAYERS.remove(handler.player.getUUID()));
 		ServerPlayNetworking.registerGlobalReceiver(FabricHelloPayload.ID, (payload, context) -> {
+			if (payload.message().isSupported()) {
+				SUPPORTED_PLAYERS.add(context.player().getUUID());
+			} else {
+				SUPPORTED_PLAYERS.remove(context.player().getUUID());
+			}
 		});
 		ServerPlayNetworking.registerGlobalReceiver(FabricNoteSelectionPayload.ID, (payload, context) -> applySelection(context.player(), payload.message()));
 		UseBlockCallback.EVENT.register(NoteBlockFeature::handleVanillaTuningFallback);
@@ -61,7 +72,7 @@ public final class NoteBlockFeature {
 	}
 
 	private static void applySelection(ServerPlayer player, NoteSelectionMessage message) {
-		if (!message.hasValidNoteValue()) {
+		if (!SUPPORTED_PLAYERS.contains(player.getUUID()) || !message.hasValidNoteValue()) {
 			return;
 		}
 

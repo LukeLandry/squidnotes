@@ -4,7 +4,7 @@ plugins {
 }
 
 base {
-	archivesName = project.paper_archives_base_name
+	archivesName = 'squidnotes-paper'
 }
 
 dependencies {
@@ -25,19 +25,21 @@ processResources {
 }
 
 jar {
-	inputs.property "archivesName", project.base.archivesName
 	dependsOn ':shared:classes'
-	from { project(':shared').sourceSets.main.output }
+	def sharedOutput = project(':shared').sourceSets.main.output
+	from(sharedOutput) {
+		rename { "squidnotes-paper-${it}" }
+	}
 
 	from(rootProject.file("LICENSE")) {
-		rename { "${it}_${inputs.properties.archivesName}" }
+		rename { "${it}_squidnotes-paper" }
 	}
 }
 
 publishing {
 	publications {
 		create("mavenJava", MavenPublication) {
-			artifactId = project.paper_archives_base_name
+			artifactId = 'squidnotes-paper'
 			from components.java
 		}
 	}

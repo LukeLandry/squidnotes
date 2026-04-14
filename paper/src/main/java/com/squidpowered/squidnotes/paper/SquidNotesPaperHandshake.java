@@ -89,13 +89,27 @@ public final class SquidNotesPaperHandshake implements PluginMessageListener, Li
 			return;
 		}
 
-		Block block = player.getWorld().getBlockAt(selection.x(), selection.y(), selection.z());
+		int chunkX = selection.x() >> 4;
+		int chunkZ = selection.z() >> 4;
 
-		if (block.getType() != Material.NOTE_BLOCK) {
+		if (!player.getWorld().isChunkLoaded(chunkX, chunkZ)) {
 			return;
 		}
 
-		if (!block.getChunk().isLoaded() || block.getLocation().toCenterLocation().distanceSquared(player.getEyeLocation()) > INTERACTION_RANGE_SQUARED) {
+		double centerX = selection.x() + 0.5D;
+		double centerY = selection.y() + 0.5D;
+		double centerZ = selection.z() + 0.5D;
+		double distanceX = centerX - player.getEyeLocation().getX();
+		double distanceY = centerY - player.getEyeLocation().getY();
+		double distanceZ = centerZ - player.getEyeLocation().getZ();
+
+		if ((distanceX * distanceX) + (distanceY * distanceY) + (distanceZ * distanceZ) > INTERACTION_RANGE_SQUARED) {
+			return;
+		}
+
+		Block block = player.getWorld().getBlockAt(selection.x(), selection.y(), selection.z());
+
+		if (block.getType() != Material.NOTE_BLOCK) {
 			return;
 		}
 

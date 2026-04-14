@@ -40,10 +40,10 @@ public class NoteBlockKeyboardScreen extends Screen {
 	private static final int HOVER_BORDER = 0xFFEAD7B7;
 
 	private final BlockPos blockPos;
-	private final int committedNoteValue;
 	private final NoteBlockInstrument instrument;
 	private final List<KeyBounds> whiteKeys = new ArrayList<>();
 	private final List<KeyBounds> blackKeys = new ArrayList<>();
+	private int committedNoteValue;
 	private int pendingNoteValue;
 	private int lastClickedNoteValue = -1;
 	private Button confirmButton;
@@ -83,6 +83,8 @@ public class NoteBlockKeyboardScreen extends Screen {
 
 	@Override
 	public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float deltaTicks) {
+		this.syncCommittedNoteValue();
+
 		context.fill(0, 0, this.width, this.height, SCREEN_BACKDROP);
 		context.fill(this.panelLeft, this.panelTop, this.panelLeft + PANEL_WIDTH, this.panelTop + PANEL_HEIGHT, PANEL_BACKGROUND);
 		context.outline(this.panelLeft, this.panelTop, PANEL_WIDTH, PANEL_HEIGHT, PANEL_BORDER);
@@ -143,6 +145,25 @@ public class NoteBlockKeyboardScreen extends Screen {
 	private void closeScreen() {
 		if (this.minecraft != null) {
 			this.minecraft.setScreen(null);
+		}
+	}
+
+	private void syncCommittedNoteValue() {
+		if (this.minecraft == null || this.minecraft.level == null || !this.minecraft.level.isLoaded(this.blockPos)) {
+			return;
+		}
+
+		var state = this.minecraft.level.getBlockState(this.blockPos);
+
+		if (!state.is(net.minecraft.world.level.block.Blocks.NOTE_BLOCK)) {
+			this.closeScreen();
+			return;
+		}
+
+		this.committedNoteValue = state.getValue(NoteBlock.NOTE);
+
+		if (this.confirmButton != null) {
+			this.confirmButton.active = this.pendingNoteValue != this.committedNoteValue;
 		}
 	}
 
