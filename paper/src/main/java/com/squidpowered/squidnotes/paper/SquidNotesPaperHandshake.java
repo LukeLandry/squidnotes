@@ -56,7 +56,7 @@ public final class SquidNotesPaperHandshake implements PluginMessageListener, Li
 				this.handleSetNote(player, message);
 			}
 		} catch (RuntimeException exception) {
-			this.plugin.getLogger().fine("Ignored invalid Squid Notes plugin message from " + player.getName());
+			this.plugin.getLogger().warning("Ignored invalid Squid Notes plugin message on channel " + channel + " from " + player.getName() + ": " + exception.getMessage());
 		}
 	}
 

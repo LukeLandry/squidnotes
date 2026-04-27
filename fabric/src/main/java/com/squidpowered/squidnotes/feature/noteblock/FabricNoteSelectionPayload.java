@@ -17,7 +17,7 @@ public record FabricNoteSelectionPayload(NoteSelectionMessage message) implement
 		payload -> payload.message().y(),
 		ByteBufCodecs.INT,
 		payload -> payload.message().z(),
-		ByteBufCodecs.VAR_INT,
+		ByteBufCodecs.INT,
 		payload -> payload.message().noteValue(),
 		(x, y, z, noteValue) -> new FabricNoteSelectionPayload(new NoteSelectionMessage(x, y, z, noteValue))
 	);

@@ -27,9 +27,7 @@ processResources {
 jar {
 	dependsOn ':shared:classes'
 	def sharedOutput = project(':shared').sourceSets.main.output
-	from(sharedOutput) {
-		rename { "squidnotes-paper-${it}" }
-	}
+	from(sharedOutput)
 
 	from(rootProject.file("LICENSE")) {
 		rename { "${it}_squidnotes-paper" }
